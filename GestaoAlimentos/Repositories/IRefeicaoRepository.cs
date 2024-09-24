@@ -6,7 +6,8 @@ namespace GestaoAlimentos.Repositories
     {
         Task<IEnumerable<RefeicaoModel>> GetAll();
         Task<RefeicaoModel> BuscarRefPorId(int id);
-        Task AdicionarRefeicao(RefeicaoModel refeicao);
+        Task<RefeicaoModel> AdicionarRefeicao(RefeicaoModel refeicao);
+        Task<RefeicaoModel> AdicionarRefeicaoParaUsuario(RefeicaoModel refeicao, int UsuarioId);
         Task<RefeicaoModel> AtualizarRefeicao(RefeicaoModel refeicao, int id);
         Task ExcluirRefeicao(int id);
     }

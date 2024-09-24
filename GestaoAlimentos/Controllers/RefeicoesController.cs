@@ -18,7 +18,29 @@ namespace GestaoAlimentos.Controllers
             _refeicaoRepository = refeicaoRepository;
         }
 
-       
+        [HttpPost("Adicionar Refeicao Para Usuario")]
+        public async Task<ActionResult> AdicionarRefeicaoParaUsuario(RefeicaoModel refeicao, int UsuarioId)
+        {
+            try
+            {
+                var novaRefeicao = await _refeicaoRepository.AdicionarRefeicaoParaUsuario(refeicao, UsuarioId);
+
+                if (novaRefeicao != null)
+                {
+                    return Ok(new { message = "Refeição adicionada com sucesso!", refeicao = novaRefeicao });
+                }
+                else
+                {
+                    return NotFound(new { message = "Usuário não encontrado!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                
+                return StatusCode(500, new { message = "Ocorreu um erro ao adicionar a refeição.", error = ex.Message });
+            }
+        }
+
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RefeicaoModel>>> GetAll()
@@ -38,19 +60,20 @@ namespace GestaoAlimentos.Controllers
 
         }
         [HttpPost]
-        public async Task AdicionarRefeicao(RefeicaoModel refeicao)
+        public async Task<RefeicaoModel> AdicionarRefeicao(RefeicaoModel refeicao)
         {
              
             await _refeicaoRepository.AdicionarRefeicao(refeicao);
+            return refeicao;
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<ActionResult> AtualizarRefeicao(RefeicaoModel refeicao, int id)
         {
             await _refeicaoRepository.AtualizarRefeicao(refeicao, id);
             return Ok(refeicao);
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<ActionResult> ExcluirRefeicao(int id)
         {
             await _refeicaoRepository.ExcluirRefeicao(id);

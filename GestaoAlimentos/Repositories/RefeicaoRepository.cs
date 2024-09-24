@@ -3,6 +3,7 @@ using GestaoAlimentos.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace GestaoAlimentos.Repositories
 {
@@ -15,7 +16,7 @@ namespace GestaoAlimentos.Repositories
             _context = context;
         }
 
-        public async Task AdicionarRefeicao(RefeicaoModel refeicao)
+        public async Task<RefeicaoModel> AdicionarRefeicao(RefeicaoModel refeicao)
         {
             if (refeicao == null)
             {
@@ -24,9 +25,22 @@ namespace GestaoAlimentos.Repositories
 
             await _context.Refeicoes.AddAsync(refeicao);
             await _context.SaveChangesAsync();
+            return refeicao;
         }
 
-       
+        public async Task<RefeicaoModel> AdicionarRefeicaoParaUsuario(RefeicaoModel refeicao, int UsuarioId)
+        {
+            
+            var usuarioExistente = await _context.Usuarios.Include(u => u.Refeicoes).FirstOrDefaultAsync(u => u.Id == UsuarioId);
+
+            if (usuarioExistente != null)
+            {
+                usuarioExistente.Refeicoes.Add(refeicao);
+                await _context.SaveChangesAsync();
+            }
+
+            return refeicao;
+        }
 
         public async Task<RefeicaoModel> AtualizarRefeicao(RefeicaoModel refeicao, int id)
         {
@@ -35,9 +49,17 @@ namespace GestaoAlimentos.Repositories
             {
                 throw new Exception($"Refeição {id} não encontrada");
             }
+            var refeicoes = await _context.Refeicoes.Where(refeicaoPorId => refeicaoPorId.Id == id).Include(r => r.Usuario).Select(x => new RefeicaoModel
+            {
+                Id = x.Id,
+                Tipo = x.Tipo,
+                Descricao = x.Descricao,
+                Usuario = x.Usuario
+            }).ToListAsync();
 
             refeicaoPorId.Tipo = refeicao.Tipo;
             refeicaoPorId.Descricao = refeicao.Descricao;
+            refeicaoPorId.Usuario = refeicao.Usuario;
             _context.Entry(refeicaoPorId).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
@@ -46,29 +68,49 @@ namespace GestaoAlimentos.Repositories
 
         public async Task<RefeicaoModel> BuscarRefPorId(int id)
         {
-           
-            return await _context.Refeicoes.FirstOrDefaultAsync(x => x.Id == id);
-            
-            
+
+            var refeicoesPorId = await _context.Refeicoes.FirstOrDefaultAsync(x => x.Id == id);
+
+            var refeicoes = await _context.Refeicoes.Where(refeicoesPorId => refeicoesPorId.Id == id).Include(r => r.Usuario).Select(x => new RefeicaoModel
+            {
+                Id = x.Id,
+                Tipo = x.Tipo,
+                Descricao = x.Descricao,
+                Usuario = x.Usuario
+            }).ToListAsync();
+
+            return refeicoesPorId;
+
         }
 
         public async Task ExcluirRefeicao(int id)
         {
-            RefeicaoModel refeicao = await _context.Refeicoes.FirstOrDefaultAsync(x => x.Id == id);
-            if (refeicao == null)
+            RefeicaoModel refeicoesPorId = await _context.Refeicoes.FirstOrDefaultAsync(x => x.Id == id);
+            if (refeicoesPorId == null)
             {
                 throw new Exception($"Refeição {id} não encontrada");
             }
-            _context.Refeicoes.Remove(refeicao);
+
+
+            _context.Refeicoes.Remove(refeicoesPorId);
             await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<RefeicaoModel>> GetAll()
         {
-            return await _context.Refeicoes.ToListAsync();
+            var refeicoes = await _context.Refeicoes.Include(r => r.Usuario).Select(x => new RefeicaoModel
+            {
+                Id = x.Id,
+                Tipo = x.Tipo,
+                Descricao = x.Descricao,
+                Usuario = x.Usuario
+            }).ToListAsync();
+
+            return refeicoes;
+
 
         }
 
-       
+
     }
 }

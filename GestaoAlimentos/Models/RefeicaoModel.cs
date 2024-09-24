@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace GestaoAlimentos.Models
 {
@@ -7,9 +8,11 @@ namespace GestaoAlimentos.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public string Tipo { get; set; } // ex. café da manha etc
+        public string? Tipo { get; set; } // ex. café da manha etc
         [Required]
-        public string Descricao { get; set; }
+        public string? Descricao { get; set; }
 
+        public int UsuarioId { get; set; }
+        public UsuarioModel? Usuario { get; set; }
     }
 }
